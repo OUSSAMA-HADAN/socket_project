@@ -1,0 +1,25 @@
+# Maven
+target/
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
+
+# Logs
+*.log
+
+# Environment variables and secrets
+.env
+.env.*
+
+# Operating system
+.DS_Store
+Thumbs.db
+desktop.ini
