@@ -1,0 +1,22 @@
+# AI Assistant settings (read by the SERVER only).
+#
+# 1. Copy this file to "ai.properties" in the same folder (the project root).
+# 2. Paste your free Gemini API key from https://aistudio.google.com/apikey
+# 3. Restart the server.
+#
+# ai.properties is in .gitignore so the key is never committed.
+# Alternative: set the environment variable GEMINI_API_KEY instead (it wins over this file).
+
+gemini.apiKey=PASTE_YOUR_KEY_HERE
+
+# Model to try first. If it is overloaded, unavailable or out of quota, the server falls back
+# to gemini-3.6-flash, then gemini-3.5-flash-lite.
+# Free keys have small DAILY quotas per model (e.g. 20 requests/day for gemini-3.6-flash);
+# see your real limits at https://ai.dev/rate-limit
+# Note: new free accounts don't get Google Search (web search) on any model; the bot then
+# answers without it. Enabling billing on the Google project adds web search.
+gemini.model=gemini-3.6-flash
+
+# Send Google Search to the model? Set to false if your key's plan doesn't include it
+# (new free keys don't): answers are then faster and never fail on the search tool.
+gemini.webSearch=true

@@ -1,25 +1,47 @@
-# Maven
 target/
+!.mvn/wrapper/maven-wrapper.jar
 
-# Java
-*.class
-*.jar
-*.war
-*.ear
+### Secrets: AI API key (see ai.properties.example) ###
+ai.properties
+!**/src/main/**/target/
+!**/src/test/**/target/
+.kotlin
 
-# IntelliJ IDEA
+### IntelliJ IDEA (personal settings; shared run configurations live in .run/) ###
 .idea/
+*.iws
 *.iml
-out/
+*.ipr
 
-# Logs
-*.log
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
 
-# Environment variables and secrets
-.env
-.env.*
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
 
-# Operating system
+### VS Code ###
+.vscode/
+
+### Mac OS ###
 .DS_Store
-Thumbs.db
-desktop.ini
+### Android (Gradle) ###
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/.kotlin/
+*.apk

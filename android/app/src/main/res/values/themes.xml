@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Light, like the desktop app. Material 3 with Telegram's blue. -->
+    <style name="Theme.ChatFX" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/tg_primary</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/tg_primary</item>
+        <item name="colorSecondary">@color/tg_primary</item>
+        <item name="colorError">@color/tg_error</item>
+        <item name="android:colorBackground">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+    <!-- Rounded corners for photos inside bubbles -->
+    <style name="ShapePhoto">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">10dp</item>
+    </style>
+</resources>

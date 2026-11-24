@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Chat list (desktop Sidebar): General and AI Assistant pinned, then the most recent chats. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/tg_primary"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.Material3.Light"
+        app:subtitleTextColor="#D9FFFFFF"
+        app:title="@string/app_name"
+        app:titleTextColor="@color/white" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingVertical="4dp" />
+</LinearLayout>

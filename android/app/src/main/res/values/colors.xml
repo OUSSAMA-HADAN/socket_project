@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Same palette as desktop/src/main/resources/styles/theme.css -->
+<resources>
+    <color name="tg_primary">#3390EC</color>
+    <color name="tg_text">#000000</color>
+    <color name="tg_secondary_text">#707579</color>
+    <color name="tg_out_bubble">#EEFFDE</color>
+    <color name="tg_out_accent">#4FAE4E</color>
+    <color name="tg_error">#E53935</color>
+    <color name="white">#FFFFFF</color>
+</resources>

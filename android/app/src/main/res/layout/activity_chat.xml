@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One conversation (desktop ChatPane): header, messages on the green wallpaper, input bar, emoji panel. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_chat"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/tg_primary"
+        android:minHeight="?attr/actionBarSize"
+        app:contentInsetStartWithNavigation="0dp"
+        app:navigationIcon="@drawable/ic_arrow_back"
+        app:navigationIconTint="@color/white">
+
+        <LinearLayout
+            android:id="@+id/header"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <mobile.ui.AvatarView
+                android:id="@+id/headerAvatar"
+                android:layout_width="40dp"
+                android:layout_height="40dp" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/headerTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:singleLine="true"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/headerSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:singleLine="true"
+                    android:textColor="#D9FFFFFF"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.appbar.MaterialToolbar>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/messages"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="8dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="bottom"
+        android:orientation="horizontal"
+        android:padding="8dp">
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <!-- Normal mode: [emoji] [text] [attach] -->
+            <LinearLayout
+                android:id="@+id/compose"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_input"
+                android:elevation="1dp"
+                android:gravity="bottom"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/emojiButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/emoji"
+                    android:src="@drawable/ic_emoji"
+                    app:tint="@color/tg_secondary_text" />
+
+                <EditText
+                    android:id="@+id/input"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:hint="@string/hint_message"
+                    android:importantForAutofill="no"
+                    android:inputType="textMultiLine|textCapSentences"
+                    android:maxLines="5"
+                    android:minHeight="48dp"
+                    android:paddingVertical="12dp"
+                    android:textColor="@color/tg_text"
+                    android:textSize="16sp" />
+
+                <ImageButton
+                    android:id="@+id/attachButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/attach"
+                    android:src="@drawable/ic_attach"
+                    app:tint="@color/tg_secondary_text" />
+            </LinearLayout>
+
+            <!-- Recording mode (desktop recordBox): ● 0:07  Recording voice message…  CANCEL -->
+            <LinearLayout
+                android:id="@+id/recordBar"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_input"
+                android:elevation="1dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="18dp"
+                android:paddingEnd="6dp"
+                android:visibility="gone">
+
+                <View
+                    android:id="@+id/recordDot"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:background="@drawable/bg_circle"
+                    android:backgroundTint="@color/tg_error" />
+
+                <TextView
+                    android:id="@+id/recordTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:textColor="@color/tg_text"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:singleLine="true"
+                    android:text="@string/recording"
+                    android:textColor="@color/tg_secondary_text"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/recordCancel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center"
+                    android:paddingHorizontal="12dp"
+                    android:text="@string/cancel"
+                    android:textColor="@color/tg_primary"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <!-- Send when there is text, mic when empty, send again while recording (same as desktop) -->
+        <ImageButton
+            android:id="@+id/action"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_send"
+            android:contentDescription="@string/send"
+            android:elevation="2dp"
+            android:src="@drawable/ic_mic" />
+    </LinearLayout>
+
+    <androidx.emoji2.emojipicker.EmojiPickerView
+        android:id="@+id/emojiPicker"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:background="@color/white"
+        android:visibility="gone"
+        app:emojiGridColumns="8" />
+</LinearLayout>
