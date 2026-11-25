@@ -16,6 +16,9 @@ import java.util.Properties;
  *   <li>file {@code ai.properties} in the project root (or the working directory),
  *       key {@code gemini.apiKey}. Copy {@code ai.properties.example} to create it.</li>
  * </ol>
+ * <p>
+ * A {@code record} is a compact class for simple data: Java writes the constructor, the getters
+ * ({@code apiKey()}, {@code model()}, {@code webSearch()}), equals and toString for us.
  */
 public record AiSettings(String apiKey, String model, boolean webSearch) {
 
@@ -27,17 +30,21 @@ public record AiSettings(String apiKey, String model, boolean webSearch) {
 
     /** Configured model first, then the fallbacks (no duplicates). */
     public List<String> modelsToTry() {
+        // LinkedHashSet: ignores duplicates AND keeps the insertion order.
         LinkedHashSet<String> models = new LinkedHashSet<>();
         models.add(model);
         models.addAll(FALLBACK_MODELS);
         return List.copyOf(models);
     }
 
+    /** True if a real key was provided (not empty, not the "PASTE_YOUR_KEY_HERE" placeholder). */
     public boolean isConfigured() {
         return apiKey != null && !apiKey.isBlank() && !apiKey.startsWith("PASTE_");
     }
 
+    /** Reads the settings once, when the server starts. */
     public static AiSettings load() {
+        // Properties reads "key=value" lines, like those in ai.properties.
         Properties props = new Properties();
         Path file = findFile();
         if (file != null) {
@@ -47,11 +54,13 @@ public record AiSettings(String apiKey, String model, boolean webSearch) {
                 System.err.println("Could not read " + file.toAbsolutePath() + ": " + e.getMessage());
             }
         }
+        // The environment variable wins over the file.
         String key = System.getenv("GEMINI_API_KEY");
         if (key == null || key.isBlank()) {
             key = props.getProperty("gemini.apiKey", "").trim();
         }
         String model = props.getProperty("gemini.model", DEFAULT_MODEL).trim();
+        // Web search is on unless the file explicitly says gemini.webSearch=false.
         boolean webSearch = !"false".equalsIgnoreCase(props.getProperty("gemini.webSearch", "true").trim());
         return new AiSettings(key, model.isEmpty() ? DEFAULT_MODEL : model, webSearch);
     }
@@ -66,6 +75,6 @@ public record AiSettings(String apiKey, String model, boolean webSearch) {
                 return candidate.toAbsolutePath().normalize();
             }
         }
-        return null;
+        return null; // not found: the bot will answer "I'm not configured yet"
     }
 }

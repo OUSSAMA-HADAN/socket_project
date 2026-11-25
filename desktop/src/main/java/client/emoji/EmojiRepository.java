@@ -27,14 +27,17 @@ public final class EmojiRepository {
     private static final String PNG_DIR = "/emoji/png/";
     private static final String CATEGORIES_FILE = "/emoji/categories.txt";
 
-    private static final Map<String, URL> RESOURCES = new ConcurrentHashMap<>();
-    private static final Map<String, Boolean> MISSING = new ConcurrentHashMap<>();
-    private static final Map<String, Image> IMAGES = new ConcurrentHashMap<>();
-    private static List<Category> categories;
+    // Caches, so each PNG is looked up and loaded only once (ConcurrentHashMap: safe from any thread).
+    private static final Map<String, URL> RESOURCES = new ConcurrentHashMap<>(); // file name -> where the PNG is
+    private static final Map<String, Boolean> MISSING = new ConcurrentHashMap<>(); // file names we have no PNG for
+    private static final Map<String, Image> IMAGES = new ConcurrentHashMap<>();    // file name -> loaded image
+    private static List<Category> categories; // loaded on first use
 
+    /** One tab of the picker, e.g. ("Smileys & People", "😀", [😀, 😃, ...]). */
     public record Category(String name, String icon, List<String> emojis) {
     }
 
+    /** A piece of text: either plain text (emoji = false) or exactly one emoji (emoji = true). */
     public record Segment(String text, boolean emoji) {
     }
 
@@ -43,6 +46,7 @@ public final class EmojiRepository {
 
     // ---------------------------------------------------------------- images
 
+    /** True if we have a picture for this emoji. */
     public static boolean exists(String emoji) {
         return url(emoji) != null;
     }
@@ -56,6 +60,7 @@ public final class EmojiRepository {
         return IMAGES.computeIfAbsent(fileName(emoji), k -> new Image(url.toExternalForm(), true));
     }
 
+    /** Finds the PNG inside the app's resources, remembering hits and misses. */
     private static URL url(String emoji) {
         String key = fileName(emoji);
         if (key.isEmpty() || MISSING.containsKey(key)) {
@@ -73,7 +78,11 @@ public final class EmojiRepository {
         return url;
     }
 
-    /** Twemoji file naming: hex code points joined by '-', without FE0F unless it is a ZWJ sequence. */
+    /**
+     * Twemoji file naming: hex code points joined by '-', without FE0F unless it is a ZWJ sequence.
+     * Example: 👍 is the code point U+1F44D -> file "1f44d.png"; 🇫🇷 = two code points -> "1f1eb-1f1f7.png".
+     * (ZWJ = "zero width joiner", the invisible glue in combined emoji like 👨‍👩‍👧.)
+     */
     static String fileName(String emoji) {
         boolean zwj = emoji.indexOf('‍') >= 0;
         return emoji.codePoints()
@@ -84,6 +93,7 @@ public final class EmojiRepository {
 
     // ---------------------------------------------------------------- picker categories
 
+    /** The picker's categories, read once from categories.txt (synchronized: loaded only once even if two threads ask). */
     public static synchronized List<Category> categories() {
         if (categories == null) {
             categories = loadCategories();
@@ -103,6 +113,7 @@ public final class EmojiRepository {
                 if (line.isBlank() || line.startsWith("#")) {
                     continue;
                 }
+                // Line format: name|icon|emoji emoji emoji ...
                 String[] parts = line.split("\\|", 3);
                 List<String> emojis = Arrays.stream(parts[2].trim().split("\\s+"))
                         .filter(EmojiRepository::exists)
@@ -119,6 +130,8 @@ public final class EmojiRepository {
 
     /** Splits text into plain parts and emoji parts (only emoji we have an image for). */
     public static List<Segment> split(String text) {
+        // Example: "Hi 👋 bob" -> ["Hi ", 👋, " bob"]. We walk through the text: at each position,
+        // either an emoji starts (add it as its own segment) or we add one character to the plain run.
         List<Segment> segments = new ArrayList<>();
         StringBuilder plain = new StringBuilder();
         int i = 0;

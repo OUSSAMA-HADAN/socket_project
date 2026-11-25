@@ -27,9 +27,14 @@ import java.io.ByteArrayInputStream;
 
 /**
  * Builds the visual row for one chat message (text, photo, audio or file).
+ * <p>
+ * Structure of a row: [avatar (group chats only)] [bubble: sender name / content / time].
+ * The bubble's colors and rounded corners come from the CSS classes "bubble-in" (white, left)
+ * and "bubble-out" (green, right) in theme.css.
  */
 public final class MessageBubble {
 
+    // Size limits in pixels.
     private static final double MAX_BUBBLE_WIDTH = 480;
     private static final double MAX_IMAGE_WIDTH = 320;
     private static final double MAX_IMAGE_HEIGHT = 360;
@@ -56,9 +61,11 @@ public final class MessageBubble {
             bubble.getChildren().add(name);
         }
 
+        // A text made of only 1 to 3 emoji is shown big, without a bubble (like Telegram).
         int jumboCount = message.getType() == MessageType.TEXT ? EmojiText.emojiOnlyCount(message.getText()) : 0;
         boolean jumbo = jumboCount >= 1 && jumboCount <= 3;
 
+        // The content depends on the message type.
         Node content = switch (message.getType()) {
             case TEXT -> jumbo ? EmojiText.jumbo(message.getText(), jumboCount) : textContent(message);
             case IMAGE -> imageContent(message);
@@ -71,15 +78,18 @@ public final class MessageBubble {
             bubble.getStyleClass().add("media-bubble");
         }
 
+        // The small time under the content ("14:05  ✓✓" for my messages).
         Label meta = new Label(Formats.time(message.getTimestamp()) + (outgoing ? "  ✓✓" : ""));
         meta.getStyleClass().add("message-meta");
         HBox metaRow = new HBox(meta);
         metaRow.setAlignment(Pos.CENTER_RIGHT);
         bubble.getChildren().addAll(content, metaRow);
 
+        // The full-width row: pushes my bubbles to the right, others' to the left.
         HBox row = new HBox(8);
         row.setAlignment(outgoing ? Pos.TOP_RIGHT : Pos.TOP_LEFT);
         if (group && !outgoing) {
+            // Avatar only on the first bubble of a series; an empty gap keeps the others aligned.
             row.getChildren().add(firstOfRun ? new Avatar(message.getSender(), AVATAR_SIZE) : gap(AVATAR_SIZE));
         }
         row.getChildren().add(bubble);
@@ -99,6 +109,7 @@ public final class MessageBubble {
 
     // ---------------------------------------------------------------- content types
 
+    /** Text with color emoji, plus a right-click "Copy text" menu. */
     private static Node textContent(Message message) {
         TextFlow text = EmojiText.flow(message.getText(), 21);
         text.getStyleClass().add("message-text");
@@ -115,11 +126,13 @@ public final class MessageBubble {
         return text;
     }
 
+    /** The photo, shrunk to fit, with rounded corners; a click opens it full size. */
     private static Node imageContent(Message message) {
-        Image image = new Image(new ByteArrayInputStream(message.getData()));
+        Image image = new Image(new ByteArrayInputStream(message.getData())); // decode the bytes
         if (image.isError() || image.getWidth() <= 0) {
-            return fileContent(message);
+            return fileContent(message); // unreadable picture: show it as a file instead
         }
+        // Scale factor so the picture fits in 320 x 360, never enlarged (max 1).
         double scale = Math.min(1, Math.min(MAX_IMAGE_WIDTH / image.getWidth(), MAX_IMAGE_HEIGHT / image.getHeight()));
         ImageView view = new ImageView(image);
         view.setPreserveRatio(true);
@@ -127,6 +140,7 @@ public final class MessageBubble {
         view.setFitWidth(image.getWidth() * scale);
         view.setFitHeight(image.getHeight() * scale);
 
+        // A "clip" hides everything outside a shape: here a rounded rectangle -> rounded corners.
         Rectangle clip = new Rectangle(view.getFitWidth(), view.getFitHeight());
         clip.setArcWidth(22);
         clip.setArcHeight(22);
@@ -138,6 +152,7 @@ public final class MessageBubble {
         return view;
     }
 
+    /** A file: round icon, name and size; a click asks where to save it. */
     private static Node fileContent(Message message) {
         Circle circle = new Circle(24);
         circle.getStyleClass().add("file-icon");
@@ -160,6 +175,7 @@ public final class MessageBubble {
         return box;
     }
 
+    /** An invisible box of a fixed width (keeps bubbles aligned under the avatar). */
     private static Region gap(double width) {
         Region region = new Region();
         region.setMinWidth(width);

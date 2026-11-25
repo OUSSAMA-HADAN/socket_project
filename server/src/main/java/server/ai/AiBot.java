@@ -26,6 +26,11 @@ import java.util.function.Consumer;
  * </ul>
  * Resilience: if web search is not included in the account's plan, the bot keeps answering
  * without it; if a model is overloaded or not available, the next model is tried.
+ * <p>
+ * <b>Flow of one question</b>: ChatServer.route sees a message for "AI Assistant" and calls
+ * {@link #ask} (on the client's reader thread) -> ask sends "typing…" and queues the work ->
+ * an "ai-worker" thread runs {@link #answer}: it calls Gemini over HTTPS (can take seconds),
+ * then {@code deliver} puts the reply in the user's outgoing queue.
  */
 public class AiBot {
 
@@ -42,7 +47,9 @@ public class AiBot {
 
     private final AiSettings settings;
     private final GeminiClient gemini;
+    /** "Something that accepts a Message": here, ChatServer::deliverFromBot. */
     private final Consumer<Message> deliver;
+    /** Exactly 4 "ai-worker" threads: at most 4 questions are sent to Gemini at the same time. */
     private final ExecutorService workers = Executors.newFixedThreadPool(WORKER_THREADS, r -> {
         Thread t = new Thread(r, "ai-worker");
         t.setDaemon(true);
@@ -102,6 +109,9 @@ public class AiBot {
     // ---------------------------------------------------------------- answering (worker threads)
 
     private void answer(String user, String question) {
+        // One lock object per user. "synchronized" lets only one thread at a time inside this
+        // block for the SAME user: alice's second question waits for her first answer, while
+        // bob's questions run in parallel on other workers.
         synchronized (userLocks.computeIfAbsent(user, u -> new Object())) {
             try {
                 GeminiClient.Answer answer = askAnyModel(user, question);

@@ -68,6 +68,10 @@ public final class EmojiFieldOverlay extends Pane {
         return stack;
     }
 
+    /**
+     * Many changes can happen at once (typing changes the text AND the caret): instead of redrawing
+     * for each, ask for ONE redraw a moment later on the JavaFX thread.
+     */
     private void scheduleRefresh() {
         if (!refreshPending) {
             refreshPending = true;
@@ -78,6 +82,7 @@ public final class EmojiFieldOverlay extends Pane {
         }
     }
 
+    /** Redraws all emoji images over the field: for each emoji, a background patch + the color image. */
     private void refresh() {
         Text text = textNode();
         if (text == null || getScene() == null) {
@@ -131,6 +136,7 @@ public final class EmojiFieldOverlay extends Pane {
         clip.setHeight(fieldBounds.getHeight());
     }
 
+    /** The rectangle (x, y, width, height) covering the characters start..end in the Text node. */
     private static Bounds rangeBounds(Text text, int start, int end) {
         PathElement[] elements = text.rangeShape(start, end);
         double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE;
@@ -162,6 +168,7 @@ public final class EmojiFieldOverlay extends Pane {
         return textNode;
     }
 
+    /** Searches the field's inner nodes (recursively: children, then their children...) for that Text node. */
     private Text findText(Parent parent) {
         for (Node child : parent.getChildrenUnmodifiable()) {
             // the prompt text is also a Text node: pick the one that shows the field's real content

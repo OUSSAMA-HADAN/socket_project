@@ -26,20 +26,23 @@ import java.util.Objects;
 
 /**
  * Right side: header of the open chat, the messages and the input bar.
+ * <p>
+ * Layout: a BorderPane with the header on top, the scrolling list of bubbles in the center
+ * and the {@link InputBar} at the bottom. Before any chat is opened it shows a grey hint instead.
  */
 public class ChatPane extends StackPane {
 
     private final String me;
-    private final IntegerProperty onlineCount;
+    private final IntegerProperty onlineCount;                    // shared with ChatView
     private final BorderPane layout = new BorderPane();
-    private final HBox header = new HBox(12);
-    private final VBox messagesBox = new VBox(4);
+    private final HBox header = new HBox(12);                     // avatar + name + status
+    private final VBox messagesBox = new VBox(4);                 // the bubbles, top to bottom
     private final ScrollPane scroll = new ScrollPane(messagesBox);
     private final InputBar inputBar;
 
-    private Conversation current;
-    private String lastSender;
-    private LocalDate lastDay;
+    private Conversation current;  // the chat being shown
+    private String lastSender;     // to group consecutive bubbles of the same person
+    private LocalDate lastDay;     // to insert a "Today" / "Yesterday" pill when the day changes
 
     public ChatPane(String me, IntegerProperty onlineCount, ChatActions actions) {
         this.me = me;
@@ -71,6 +74,7 @@ public class ChatPane extends StackPane {
         enableDragAndDrop(actions);
     }
 
+    /** Shows a conversation: new header, all its messages, and the input bar (locked if the person is offline). */
     public void show(Conversation conversation) {
         current = conversation;
         AudioMessageView.stopActive();
@@ -82,6 +86,8 @@ public class ChatPane extends StackPane {
         lastDay = null;
         conversation.getMessages().forEach(this::render);
 
+        // "bind": the input bar is disabled exactly while the other person is offline,
+        // updated automatically when their online state changes.
         inputBar.disableProperty().unbind();
         if (conversation.isGroup()) {
             inputBar.setDisable(false);
@@ -93,6 +99,7 @@ public class ChatPane extends StackPane {
         inputBar.focusField();
     }
 
+    /** Adds one new message at the bottom of the open chat. */
     public void append(Message message) {
         if (current != null) {
             render(message);
@@ -101,6 +108,7 @@ public class ChatPane extends StackPane {
 
     // ---------------------------------------------------------------- rendering
 
+    /** Turns one message into nodes on screen: a date pill if needed, then a bubble or a system pill. */
     private void render(Message message) {
         LocalDate day = message.getTimestamp().toLocalDate();
         if (!day.equals(lastDay)) {
@@ -113,14 +121,18 @@ public class ChatPane extends StackPane {
             lastSender = null;
             return;
         }
-        boolean outgoing = me.equals(message.getSender());
-        boolean firstOfRun = !Objects.equals(lastSender, message.getSender());
+        boolean outgoing = me.equals(message.getSender());                     // mine -> right side, green
+        boolean firstOfRun = !Objects.equals(lastSender, message.getSender()); // first of a series -> name + gap
         Node row = MessageBubble.create(message, outgoing, current.isGroup(), firstOfRun);
         VBox.setMargin(row, new Insets(firstOfRun ? 6 : 0, 0, 0, 0));
         messagesBox.getChildren().add(row);
         lastSender = message.getSender();
     }
 
+    /**
+     * The header: avatar, name and a status line that updates by itself (it is "bound" to the
+     * online count, the typing flag or the online flag, depending on the kind of chat).
+     */
     private void buildHeader(Conversation conversation) {
         Label title = new Label(conversation.getTitle());
         title.getStyleClass().add("header-title");
@@ -145,13 +157,16 @@ public class ChatPane extends StackPane {
         header.getChildren().setAll(avatar, new VBox(1, title, subtitle));
     }
 
+    /** Lets the user drop files from the Windows explorer onto the chat to send them. */
     private void enableDragAndDrop(ChatActions actions) {
+        // While dragging over the chat: accept only files, and only if we can send right now.
         setOnDragOver(e -> {
             if (current != null && !inputBar.isDisabled() && e.getDragboard().hasFiles()) {
                 e.acceptTransferModes(TransferMode.COPY);
             }
             e.consume();
         });
+        // When the files are dropped: send each one, as IMAGE / AUDIO / FILE depending on its extension.
         setOnDragDropped(e -> {
             boolean done = false;
             if (e.getDragboard().hasFiles()) {

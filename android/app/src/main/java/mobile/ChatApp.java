@@ -7,6 +7,10 @@ import android.os.Bundle;
 /**
  * Runs once when the app's process starts: creates the notification channels and keeps
  * track of whether one of our screens is visible (no notifications while the user is in the app).
+ * <p>
+ * Declared in AndroidManifest.xml with {@code android:name="mobile.ChatApp"}. Android creates it
+ * before any screen. Every Activity start/stop is reported to the callbacks below, so we simply
+ * count the visible screens: more than 0 means the user is looking at the app.
  */
 public class ChatApp extends Application {
 

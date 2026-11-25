@@ -24,6 +24,9 @@ import mobile.model.Conversation;
 /**
  * Home screen: the chat list (desktop Sidebar). General and the AI Assistant are pinned on top,
  * then private chats, most recent first. Tapping a row (or a notification) opens the chat.
+ * <p>
+ * It "listens" to the ChatSession (implements ChatSession.Listener): when conversations change,
+ * the session calls onConversationsChanged and we redraw the list.
  */
 public class ChatsActivity extends AppCompatActivity implements ChatSession.Listener {
 
@@ -60,6 +63,8 @@ public class ChatsActivity extends AppCompatActivity implements ChatSession.List
             return false;
         });
 
+        // RecyclerView = Android's scrolling list. The adapter turns each Conversation into a row;
+        // the LayoutManager arranges the rows vertically.
         adapter = new ConversationAdapter(session.username(), c -> ChatActivity.open(this, c.getId()));
         RecyclerView list = findViewById(R.id.list);
         list.setLayoutManager(new LinearLayoutManager(this));
@@ -86,6 +91,7 @@ public class ChatsActivity extends AppCompatActivity implements ChatSession.List
         openFromNotification(intent);
     }
 
+    /** The screen is destroyed: stop listening, or the session would keep a dead screen alive (memory leak). */
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -96,6 +102,7 @@ public class ChatsActivity extends AppCompatActivity implements ChatSession.List
 
     // ---------------------------------------------------------------- session events
 
+    /** Something changed (new message, unread count, someone online...): redraw the list. */
     @Override
     public void onConversationsChanged() {
         refresh();

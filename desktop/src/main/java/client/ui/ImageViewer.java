@@ -21,6 +21,7 @@ public final class ImageViewer {
     private ImageViewer() {
     }
 
+    /** Opens a new window (a second Stage) showing the picture as big as the window allows. */
     public static void show(Window owner, Image image, String fileName, byte[] data) {
         Stage stage = new Stage();
         stage.initOwner(owner);
@@ -33,6 +34,7 @@ public final class ImageViewer {
         StackPane center = new StackPane(view);
         center.getStyleClass().add("viewer-background");
         center.setMinSize(0, 0);
+        // The picture follows the window size (minus a 20 px margin per side) but is never enlarged.
         view.fitWidthProperty().bind(Bindings.min(image.getWidth(), center.widthProperty().subtract(40)));
         view.fitHeightProperty().bind(Bindings.min(image.getHeight(), center.heightProperty().subtract(40)));
 
@@ -49,11 +51,12 @@ public final class ImageViewer {
         BorderPane root = new BorderPane(center);
         root.setBottom(bar);
 
+        // Window size: the picture's size plus room for the buttons, kept between a min and a max.
         Scene scene = new Scene(root,
                 Math.clamp(image.getWidth() + 80, 400, 1100),
                 Math.clamp(image.getHeight() + 140, 300, 800));
         scene.getStylesheets().add(Theme.STYLESHEET);
-        scene.setOnKeyPressed(e -> {
+        scene.setOnKeyPressed(e -> { // Esc closes the window
             if (e.getCode() == KeyCode.ESCAPE) {
                 stage.close();
             }

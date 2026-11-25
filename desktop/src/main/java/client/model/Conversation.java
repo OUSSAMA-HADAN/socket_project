@@ -17,9 +17,14 @@ import java.util.List;
 
 /**
  * A chat shown in the sidebar: either the public "General" group or a private chat with one user.
+ * <p>
+ * <b>JavaFX properties</b>: fields like {@code unread} are "properties", values that others can
+ * watch. When the unread count changes, the sidebar notices automatically and redraws the badge,
+ * without us calling any refresh method.
  */
 public class Conversation {
 
+    /** Id of the General group. "#" is forbidden in usernames, so no user can clash with it. */
     public static final String GENERAL_ID = "#general";
 
     /** Kinds in sidebar order: General is pinned first, the AI assistant second. */
@@ -27,20 +32,22 @@ public class Conversation {
 
     /** Pinned chats first, then most recent activity first, then alphabetical. */
     public static final Comparator<Conversation> ORDER = Comparator
-            .comparing((Conversation c) -> c.getKind())
-            .thenComparing(Conversation::getLastActivity, Comparator.nullsLast(Comparator.reverseOrder()))
-            .thenComparing(Conversation::getTitle, String.CASE_INSENSITIVE_ORDER);
+            .comparing((Conversation c) -> c.getKind())   // 1. GROUP, then AI, then PRIVATE
+            .thenComparing(Conversation::getLastActivity, Comparator.nullsLast(Comparator.reverseOrder())) // 2. newest first
+            .thenComparing(Conversation::getTitle, String.CASE_INSENSITIVE_ORDER); // 3. A-Z
 
-    private final String id;
-    private final String title;
+    private final String id;     // "#general", "AI Assistant", or the other user's name
+    private final String title;  // what the sidebar shows
     private final Kind kind;
-    private final List<Message> messages = new ArrayList<>();
+    private final List<Message> messages = new ArrayList<>(); // the history, oldest first
 
+    // Observable values: the sidebar re-sorts and redraws when one of them changes.
     private final ObjectProperty<LocalDateTime> lastActivity = new SimpleObjectProperty<>();
     private final IntegerProperty unread = new SimpleIntegerProperty();
     private final BooleanProperty online = new SimpleBooleanProperty(true);
     private final BooleanProperty typing = new SimpleBooleanProperty(false);
 
+    /** Private: use the factories below. */
     private Conversation(String id, String title, Kind kind) {
         this.id = id;
         this.title = title;
@@ -59,12 +66,14 @@ public class Conversation {
         return new Conversation(username, username, Kind.PRIVATE);
     }
 
+    /** Adds a message to the history and updates "last activity" (which re-sorts the sidebar). */
     public void addMessage(Message message) {
         messages.add(message);
         lastActivity.set(message.getTimestamp());
         typing.set(false); // a message arrived, so whoever was typing is done
     }
 
+    /** Read-only view of the history (callers can't add or remove messages directly). */
     public List<Message> getMessages() {
         return Collections.unmodifiableList(messages);
     }
@@ -119,6 +128,7 @@ public class Conversation {
         typing.set(value);
     }
 
+    /** The property itself, so a label can "bind" to it and update by itself. */
     public BooleanProperty typingProperty() {
         return typing;
     }

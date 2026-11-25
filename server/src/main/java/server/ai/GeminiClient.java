@@ -21,6 +21,10 @@ import java.util.Map;
  * <p>
  * Conversation memory is kept by Google: each answer has an interaction id, and the next
  * question passes it as {@code previous_interaction_id}.
+ * <p>
+ * <b>How it works</b>: build a JSON request with Gson ({@code JsonObject}), send it with Java's
+ * built-in {@code HttpClient} (POST, API key in a header), then read the JSON answer and pull
+ * out the text and the web sources. Any non-200 answer becomes an {@link ApiException}.
  */
 public class GeminiClient {
 
@@ -45,6 +49,7 @@ public class GeminiClient {
     /** Blocking HTTP call: always run it off the socket threads. */
     public Answer ask(String model, String question, String systemInstruction, String previousId, boolean webSearch)
             throws IOException, InterruptedException {
+        // 1. Build the request body: {"model": ..., "input": ..., "system_instruction": ..., ...}
         JsonObject body = new JsonObject();
         body.addProperty("model", model);
         body.addProperty("input", question);
@@ -60,6 +65,7 @@ public class GeminiClient {
             body.addProperty("previous_interaction_id", previousId);
         }
 
+        // 2. Send it (waits up to 45 s for the answer).
         HttpRequest request = HttpRequest.newBuilder(ENDPOINT)
                 .timeout(Duration.ofSeconds(45))
                 .header("Content-Type", "application/json")
@@ -72,6 +78,7 @@ public class GeminiClient {
         if (response.statusCode() / 100 != 2) {
             throw new ApiException(response.statusCode(), errorMessage(response.body()));
         }
+        // 3. Read the answer's JSON and extract the text.
         JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
         Answer answer = parse(json);
         String status = string(json, "status");

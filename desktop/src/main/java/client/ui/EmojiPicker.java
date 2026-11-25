@@ -25,6 +25,10 @@ import java.util.prefs.Preferences;
 /**
  * Telegram-style emoji panel: one scrolling list of sections ("Recently used", "Smileys & People", ...)
  * with a category bar at the bottom to jump between them. Emoji are color images.
+ * <p>
+ * A {@code Popup} is a small window without borders that floats over the app and closes by itself
+ * when you click elsewhere. The "recently used" list is saved with Java {@code Preferences}
+ * (stored in the Windows registry), so it survives restarts.
  */
 public class EmojiPicker extends Popup {
 
@@ -123,6 +127,7 @@ public class EmojiPicker extends Popup {
         return button;
     }
 
+    /** Scrolls so the section's title is at the top (the scroll position goes from 0 to 1). */
     private void scrollTo(Node section) {
         double content = sections.getHeight();
         double viewport = scroll.getViewportBounds().getHeight();
@@ -134,6 +139,7 @@ public class EmojiPicker extends Popup {
 
     // ---------------------------------------------------------------- recently used
 
+    /** An emoji was clicked: insert it, move it to the front of "recently used" and save the list. */
     private void pick(String emoji) {
         onPick.accept(emoji);
         recent.remove(emoji);

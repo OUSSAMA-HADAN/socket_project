@@ -37,6 +37,17 @@ import java.util.concurrent.Executors;
 
 /**
  * First screen: choose a display name and the server to connect to (same as the desktop LoginView).
+ * <p>
+ * <b>Android basics</b>
+ * <ul>
+ *   <li>An <b>Activity</b> is one screen. Android creates it and calls its lifecycle methods:
+ *       onCreate (build the screen) → onStart (visible) → onStop (hidden) → onDestroy (gone).</li>
+ *   <li>The layout is written in XML (res/layout/activity_login.xml). {@code setContentView} shows it,
+ *       and {@code findViewById(R.id.username)} gets the view whose XML has {@code android:id="@+id/username"}.
+ *       {@code R} is a class Android generates with a number for every resource.</li>
+ *   <li>The <b>main thread</b> (UI thread) draws the screen. Network calls are forbidden on it,
+ *       so connecting runs on a background thread, and the result comes back with runOnUiThread.</li>
+ * </ul>
  */
 public class LoginActivity extends AppCompatActivity {
 
@@ -64,6 +75,7 @@ public class LoginActivity extends AppCompatActivity {
     private ProgressBar spinner;
     private TextView error;
 
+    /** Builds the screen: show the XML layout, find the views, fill in the last values used. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,6 +92,7 @@ public class LoginActivity extends AppCompatActivity {
         spinner = findViewById(R.id.spinner);
         error = findViewById(R.id.error);
 
+        // SharedPreferences: a small key-value store saved on the phone (here: the last login used).
         SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
         username.setText(prefs.getString("username", ""));
         host.setText(prefs.getString("host", defaultHost()));
@@ -104,6 +117,7 @@ public class LoginActivity extends AppCompatActivity {
         background.shutdown();
     }
 
+    /** START MESSAGING: check the fields, ask for the local-network permission if needed, then connect. */
     private void connect() {
         String name = username.getText().toString().trim();
         String hostName = host.getText().toString().trim();
@@ -165,6 +179,10 @@ public class LoginActivity extends AppCompatActivity {
                 != PackageManager.PERMISSION_GRANTED;
     }
 
+    /**
+     * Opens the chat list. An Intent is a request to Android: "start this screen".
+     * finish() closes the login screen, so the Back button doesn't return to it.
+     */
     private void openChats() {
         startActivity(new Intent(this, ChatsActivity.class));
         finish();

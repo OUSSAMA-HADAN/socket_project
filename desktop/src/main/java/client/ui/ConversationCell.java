@@ -22,9 +22,13 @@ import java.util.function.Consumer;
 
 /**
  * One row of the sidebar: avatar, name, last message, time and unread badge.
+ * <p>
+ * A ListView only creates enough cells to fill the screen and reuses them while scrolling:
+ * {@link #updateItem} is called each time a cell must show another conversation (or nothing).
  */
 public class ConversationCell extends ListCell<Conversation> {
 
+    /** CSS state ":active" for the open chat (theme.css paints it blue). */
     private static final PseudoClass ACTIVE = PseudoClass.getPseudoClass("active");
     private static final double PREVIEW_HEIGHT = 21;
 
@@ -43,6 +47,7 @@ public class ConversationCell extends ListCell<Conversation> {
         });
     }
 
+    /** Called by the ListView to (re)fill this cell with a conversation. */
     @Override
     protected void updateItem(Conversation conversation, boolean empty) {
         super.updateItem(conversation, empty);
@@ -56,6 +61,7 @@ public class ConversationCell extends ListCell<Conversation> {
         setGraphic(build(conversation));
     }
 
+    /** Builds the row's content: [avatar (+ green dot)] [name ... time / preview ... badge]. */
     private Node build(Conversation c) {
         Node avatar = c.isAi() ? Avatar.bot(50) : new Avatar(c.getTitle(), 50);
         if (!c.isGroup() && !c.isAi() && c.isOnline()) {
@@ -75,6 +81,7 @@ public class ConversationCell extends ListCell<Conversation> {
         HBox top = new HBox(6, title, spacer(), time);
         top.setAlignment(Pos.CENTER_LEFT);
 
+        // The grey line under the name: typing, the last message, or a default hint.
         String previewText;
         if (c.isTyping()) {
             previewText = "typing…";
@@ -106,6 +113,8 @@ public class ConversationCell extends ListCell<Conversation> {
 
     /** One line of text with color emoji, cut off when too long. */
     private static Node previewLine(String text) {
+        // Cut after 60 characters. codePoint methods count an emoji as one character
+        // (in Java's String, many emoji take 2 "chars").
         String shortText = text.codePointCount(0, text.length()) > 60
                 ? text.substring(0, text.offsetByCodePoints(0, 60)) + "…" : text;
         TextFlow flow = EmojiText.flow(shortText, 17);
@@ -124,6 +133,7 @@ public class ConversationCell extends ListCell<Conversation> {
         return line;
     }
 
+    /** An empty box that grows to take the free space (pushes the time to the right). */
     private static Region spacer() {
         Region region = new Region();
         HBox.setHgrow(region, Priority.ALWAYS);

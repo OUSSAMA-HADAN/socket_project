@@ -45,6 +45,11 @@ import java.util.concurrent.Executors;
  * <p>
  * Photos are decoded on a background thread, at the size they're shown, and kept in a memory cache,
  * so scrolling stays smooth.
+ * <p>
+ * Two row types: PILL (item_pill.xml) and BUBBLE (item_message.xml). One bubble layout holds every
+ * possible part (sender name, photo, attachment row, text, time); {@code onBindViewHolder} shows
+ * only the parts this message needs and hides the others. Because rows are recycled, every part
+ * must be reset each time (a row that showed a photo may now show a text).
  */
 class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 

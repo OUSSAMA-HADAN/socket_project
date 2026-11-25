@@ -20,6 +20,12 @@ import java.util.List;
 
 /**
  * Rows of the chat list: avatar, name, time of the last message, preview and unread badge.
+ * <p>
+ * <b>How a RecyclerView adapter works</b>: the list asks {@link #getItemCount} how many rows exist,
+ * calls {@link #onCreateViewHolder} to build a few row views from XML (item_conversation.xml), and
+ * calls {@link #onBindViewHolder} to fill a row with one conversation's data. While you scroll,
+ * rows leaving the screen are reused ("recycled") for the ones arriving: that's why it's fast.
+ * A ViewHolder ({@link Holder}) just keeps references to a row's views so we look them up only once.
  */
 class ConversationAdapter extends RecyclerView.Adapter<ConversationAdapter.Holder> {
 

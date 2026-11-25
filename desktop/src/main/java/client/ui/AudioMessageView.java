@@ -27,9 +27,13 @@ import java.nio.file.Path;
 /**
  * Player for voice notes and audio files inside a bubble.
  * Only one audio plays at a time; the player is created lazily on first play.
+ * <p>
+ * JavaFX's MediaPlayer can only play from a file or URL, not from bytes in memory, so the
+ * first time you press play the audio is written to a temporary file.
  */
 public class AudioMessageView extends HBox {
 
+    /** The view currently playing (static = shared by all audio views), so starting one stops the other. */
     private static AudioMessageView active;
 
     private final Message message;
@@ -57,6 +61,7 @@ public class AudioMessageView extends HBox {
 
         progress.getStyleClass().add("audio-progress");
         progress.setPrefWidth(200);
+        // Click on the bar to jump: x position / bar width = fraction of the track (0..1).
         progress.setOnMouseClicked(e -> seek(e.getX() / progress.getWidth()));
 
         idleLabel = describeLength(message);
@@ -85,6 +90,7 @@ public class AudioMessageView extends HBox {
         }
     }
 
+    /** Play / pause button. */
     private void togglePlay() {
         if (player != null && player.getStatus() == MediaPlayer.Status.PLAYING) {
             player.pause();
@@ -106,6 +112,7 @@ public class AudioMessageView extends HBox {
         playButton.setGraphic(Icons.of(playing ? Icons.PAUSE : Icons.PLAY, 24));
     }
 
+    /** Writes the audio to a temp file and creates the MediaPlayer. Returns false if it can't be played. */
     private boolean createPlayer() {
         try {
             if (tempFile == null) {
@@ -119,6 +126,7 @@ public class AudioMessageView extends HBox {
             showUnsupported();
             return false;
         }
+        // While playing, the player's current time changes many times per second: move the bar.
         player.currentTimeProperty().addListener((obs, old, time) -> updateProgress(time));
         player.setOnEndOfMedia(() -> {
             player.stop();
@@ -146,6 +154,7 @@ public class AudioMessageView extends HBox {
         return Formats.duration((long) duration.toSeconds());
     }
 
+    /** Jumps to a position (0 = start, 1 = end). */
     private void seek(double fraction) {
         if (player == null) {
             return;
@@ -156,6 +165,7 @@ public class AudioMessageView extends HBox {
         }
     }
 
+    /** Stops and frees the player, and resets the display. */
     private void release() {
         if (player != null) {
             player.dispose();

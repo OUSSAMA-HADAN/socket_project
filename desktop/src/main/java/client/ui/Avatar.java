@@ -22,6 +22,7 @@ public class Avatar extends StackPane {
             Color.web("#6ec9cb"), Color.web("#65aadd"), Color.web("#ee7aae")
     };
 
+    /** A circle (with a light-to-normal gradient) and the white initials on top of it. */
     public Avatar(String name, double size) {
         Color base = colorFor(name);
         Circle circle = new Circle(size / 2);
@@ -50,10 +51,15 @@ public class Avatar extends StackPane {
         return avatar;
     }
 
+    /**
+     * Same name -> same color, always: hashCode() turns the name into a number, and floorMod
+     * turns that number into an index 0..6 in the palette (floorMod is never negative).
+     */
     public static Color colorFor(String name) {
         return PALETTE[Math.floorMod(name == null ? 0 : name.hashCode(), PALETTE.length)];
     }
 
+    /** "Alice Martin" -> "AM", "bob" -> "B" (first letter of the first two words). */
     private static String initialsOf(String name) {
         String[] parts = name == null ? new String[0] : name.trim().split("\\s+");
         StringBuilder sb = new StringBuilder();

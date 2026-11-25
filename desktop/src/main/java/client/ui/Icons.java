@@ -7,6 +7,9 @@ import javafx.scene.shape.SVGPath;
 /**
  * Vector icons (24x24 Material paths) so buttons look the same on every system font.
  * Color them from CSS with the {@code .icon} style class.
+ * <p>
+ * Each constant is an SVG "path": drawing instructions on a 24x24 grid (M = move to,
+ * L = line to, c = curve, z = close the shape). They come from Google's Material icons.
  */
 public final class Icons {
 
@@ -34,6 +37,7 @@ public final class Icons {
     private Icons() {
     }
 
+    /** Creates an icon node at the requested size in pixels, e.g. {@code Icons.of(Icons.SEND, 26)}. */
     public static Node of(String path, double size) {
         SVGPath svg = new SVGPath();
         svg.setContent(path);

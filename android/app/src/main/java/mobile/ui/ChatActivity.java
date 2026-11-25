@@ -53,6 +53,15 @@ import java.util.concurrent.Executors;
 /**
  * One conversation (desktop ChatPane + InputBar): header, messages, and the input bar with
  * emoji panel, attachments (photos, audio, files) and voice messages.
+ * <p>
+ * <b>How it fits together</b>
+ * <ul>
+ *   <li>Messages are shown by a RecyclerView with {@link MessageAdapter}.</li>
+ *   <li>New messages arrive through ChatSession.Listener.onMessage (already on the main thread).</li>
+ *   <li>Sending goes through ChatSession (sendText / sendAttachment), which uses the shared ChatClient.</li>
+ *   <li>System pickers (photos, files) and permission questions use "ActivityResultLauncher":
+ *       you register them once, launch them later, and a callback receives the answer.</li>
+ * </ul>
  */
 public class ChatActivity extends AppCompatActivity implements ChatSession.Listener, MessageAdapter.Actions {
 
@@ -104,6 +113,7 @@ public class ChatActivity extends AppCompatActivity implements ChatSession.Liste
                 }
             });
 
+    /** Opens the chat screen for a conversation. putExtra attaches the conversation's id to the request. */
     public static void open(Context context, String conversationId) {
         context.startActivity(new Intent(context, ChatActivity.class).putExtra(EXTRA_ID, conversationId));
     }
@@ -288,6 +298,10 @@ public class ChatActivity extends AppCompatActivity implements ChatSession.Liste
 
     // ---------------------------------------------------------------- sending attachments
 
+    /**
+     * Photos picked in the gallery. A Uri is Android's address of a file (often not a normal path).
+     * Each photo is read on the "attachment-reader" thread, then sent from the main thread.
+     */
     private void sendPhotos(List<Uri> uris) {
         for (Uri uri : uris) {
             reader.execute(() -> {
@@ -334,6 +348,7 @@ public class ChatActivity extends AppCompatActivity implements ChatSession.Liste
 
     // ---------------------------------------------------------------- voice messages
 
+    /** Starts the microphone and switches the input bar to "recording" mode (blinking dot + timer). */
     private void startRecording() {
         showEmojiPanel(false);
         try {
@@ -358,6 +373,7 @@ public class ChatActivity extends AppCompatActivity implements ChatSession.Liste
         updateActionButton();
     }
 
+    /** Second tap on the round button: stop, check the recording is long and loud enough, send it. */
     private void finishRecording() {
         long length = recorder.elapsedMillis();
         byte[] wav = recorder.stop();
@@ -421,10 +437,11 @@ public class ChatActivity extends AppCompatActivity implements ChatSession.Liste
 
     // ---------------------------------------------------------------- session events
 
+    /** A message was added somewhere; if it's in this chat, show it (and scroll down if we were at the bottom). */
     @Override
     public void onMessage(Conversation c, Message message) {
         if (c != conversation) {
-            return;
+            return; // a message for another chat: the chat list shows it as unread
         }
         boolean wasAtBottom = !messages.canScrollVertically(1);
         adapter.append(message);

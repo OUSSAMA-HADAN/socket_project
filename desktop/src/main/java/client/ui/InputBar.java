@@ -33,10 +33,15 @@ import java.util.List;
 /**
  * Bottom bar: emoji, text field, attachments, and a round button that is a
  * microphone when the field is empty and a send arrow otherwise.
+ * <p>
+ * Two "modes" share the same place: the compose box (emoji, text, attach) and, while a voice
+ * note is recorded, the record box (red dot, timer, CANCEL). Only one is visible at a time.
  */
 public class InputBar extends HBox {
 
+    /** Shorter recordings are treated as an accidental tap and not sent. */
     private static final long MIN_VOICE_MILLIS = 700;
+    /** A WAV file with no sound is just its 44-byte header. */
     private static final int WAV_HEADER_BYTES = 44;
 
     private final ChatActions actions;
@@ -107,6 +112,7 @@ public class InputBar extends HBox {
         HBox.setHgrow(recordBox, Priority.ALWAYS);
         showRecordBox(false);
 
+        // A Timeline runs code on the JavaFX thread at fixed times: here every 250 ms, to update "0:07".
         recordTimer = new Timeline(new KeyFrame(Duration.millis(250), e -> recordTime.setText(
                 Formats.duration((System.currentTimeMillis() - recordStartedAt) / 1000))));
         recordTimer.setCycleCount(Animation.INDEFINITE);
@@ -114,6 +120,7 @@ public class InputBar extends HBox {
         // --- round action button
         actionButton.getStyleClass().add("send-button");
         actionButton.setOnAction(e -> onAction());
+        // Each time the text changes, switch the button between mic and send arrow.
         field.textProperty().addListener((obs, old, text) -> updateActionButton());
         updateActionButton();
 
@@ -137,6 +144,7 @@ public class InputBar extends HBox {
 
     // ---------------------------------------------------------------- actions
 
+    /** The round button: finish a recording, send the text, or start recording (in that order of priority). */
     private void onAction() {
         if (recorder.isRecording()) {
             finishRecording();
@@ -155,10 +163,12 @@ public class InputBar extends HBox {
         }
     }
 
+    /** Called by the emoji picker: inserts the emoji where the cursor is. */
     private void insertEmoji(String emoji) {
         field.insertText(field.getCaretPosition(), emoji);
     }
 
+    /** Opens Windows' file dialog (filtered by type) and sends every file chosen. */
     private void pickFiles(MessageType type) {
         FileChooser chooser = new FileChooser();
         switch (type) {
@@ -223,6 +233,7 @@ public class InputBar extends HBox {
         showRecordBox(false);
     }
 
+    /** Swaps the compose box and the record box ("managed = false" also frees the space it took). */
     private void showRecordBox(boolean recording) {
         recordBox.setVisible(recording);
         recordBox.setManaged(recording);
@@ -242,6 +253,7 @@ public class InputBar extends HBox {
 
     // ---------------------------------------------------------------- helpers
 
+    /** A flat round button showing an SVG icon, with a hint on mouse-over. */
     private static Button iconButton(String iconPath, String tooltip) {
         Button button = new Button();
         button.setGraphic(Icons.of(iconPath, 24));

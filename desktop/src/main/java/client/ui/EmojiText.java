@@ -20,6 +20,10 @@ public final class EmojiText {
     private EmojiText() {
     }
 
+    /**
+     * A TextFlow is a paragraph made of several pieces in a row: here, Text pieces for the words
+     * and ImageView pieces for the emoji, so a message shows its emoji in color.
+     */
     public static TextFlow flow(String text, double emojiSize) {
         TextFlow flow = new TextFlow();
         for (Segment segment : EmojiRepository.split(text)) {

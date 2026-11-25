@@ -22,11 +22,21 @@ import java.util.function.Consumer;
 
 /**
  * Left column: my profile, search box and the list of chats.
+ * <p>
+ * The list shows ChatView's conversations through two "views" stacked on top of each other:
+ * a FilteredList (hides chats that don't match the search) and a SortedList (keeps them in
+ * {@link Conversation#ORDER}). Both update automatically when the original list changes.
  */
 public class Sidebar extends VBox {
 
+    /** The conversation that is open (highlighted in blue). */
     private final ObjectProperty<Conversation> active = new SimpleObjectProperty<>();
 
+    /**
+     * @param conversations ChatView's list (the sidebar only reads it)
+     * @param onOpen        called when the user clicks a chat
+     * @param onLogout      called by the log-out button
+     */
     public Sidebar(String me, ObservableList<Conversation> conversations,
                    Consumer<Conversation> onOpen, Runnable onLogout) {
         getStyleClass().add("sidebar");
@@ -59,6 +69,7 @@ public class Sidebar extends VBox {
 
         // --- list: filtered by the search box, sorted by activity
         FilteredList<Conversation> filtered = new FilteredList<>(conversations);
+        // Every time the search text changes, change the filter's rule (its "predicate").
         search.textProperty().addListener((obs, old, query) -> {
             String q = query == null ? "" : query.trim().toLowerCase(Locale.ROOT);
             filtered.setPredicate(c -> q.isEmpty() || c.getTitle().toLowerCase(Locale.ROOT).contains(q));
@@ -67,6 +78,7 @@ public class Sidebar extends VBox {
 
         ListView<Conversation> list = new ListView<>(sorted);
         list.getStyleClass().add("conversation-list");
+        // A ListView reuses a few "cells" while scrolling; the factory says how to create one.
         list.setCellFactory(lv -> new ConversationCell(me, active, onOpen));
         list.setPlaceholder(new Label("No chats found"));
         VBox.setVgrow(list, Priority.ALWAYS);
@@ -75,6 +87,7 @@ public class Sidebar extends VBox {
         getChildren().addAll(header, searchBox, list);
     }
 
+    /** Highlights the chat that ChatView opened. */
     public void setActive(Conversation conversation) {
         active.set(conversation);
     }
