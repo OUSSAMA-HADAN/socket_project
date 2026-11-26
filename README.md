@@ -79,6 +79,17 @@ real clients: user list, name rules, group and private routing, attachments byte
 spoofed senders, size limit, and 8 clients sending at once (exactly-once delivery, per-sender order).
 It never calls the AI service, so it costs no API quota.
 
+## Where to start reading the code
+
+Every class is commented for beginners. Read them in the order a message travels:
+
+1. `common/.../Message.java`: the one object that travels over the network
+2. `common/.../ChatClient.java`: how a client connects, sends and receives
+3. `server/.../ClientHandler.java`: the two threads the server runs per client
+4. `server/.../ChatServer.java`: who receives which message (`route()`)
+5. `desktop/.../ui/ChatView.java`: the desktop's brain
+6. `android/.../mobile/ChatSession.java`: the same brain on Android
+
 ## How the concurrency works
 
 **Server**
