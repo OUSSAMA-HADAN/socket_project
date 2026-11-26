@@ -136,6 +136,10 @@ public class LoginActivity extends AppCompatActivity {
             showError("The port must be a number.");
             return;
         }
+        if (portNumber < 1 || portNumber > 65535) { // valid TCP ports
+            showError("The port must be between 1 and 65535.");
+            return;
+        }
         if (needsLocalNetworkPermission()) {
             localNetworkPermission.launch(Manifest.permission.ACCESS_LOCAL_NETWORK); // calls connect() again
             return;
