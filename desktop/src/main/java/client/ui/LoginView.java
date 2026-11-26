@@ -99,6 +99,10 @@ public class LoginView extends StackPane {
             showError("The port must be a number.");
             return;
         }
+        if (portNumber < 1 || portNumber > 65535) { // valid TCP ports
+            showError("The port must be between 1 and 65535.");
+            return;
+        }
 
         setBusy(true);
         // Connecting can take seconds: a JavaFX Task runs call() on a background thread,
