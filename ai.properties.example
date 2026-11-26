@@ -17,6 +17,6 @@ gemini.apiKey=PASTE_YOUR_KEY_HERE
 # answers without it. Enabling billing on the Google project adds web search.
 gemini.model=gemini-3.6-flash
 
-# Send Google Search to the model? Set to false if your key's plan doesn't include it
-# (new free keys don't): answers are then faster and never fail on the search tool.
-gemini.webSearch=true
+# Send Google Search to the model? New free keys don't include it, so it is off by default:
+# answers are faster and never fail on the search tool. Set to true if billing is enabled.
+gemini.webSearch=false
